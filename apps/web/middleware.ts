@@ -4,23 +4,22 @@ import type { NextRequest } from 'next/server';
 
 export async function middleware(req: NextRequest) {
   const res = NextResponse.next();
+  
+  // VERIFICAR PRIMEIRO: Rotas públicas da API (antes de qualquer outra coisa)
+  if (req.nextUrl.pathname.startsWith('/api/auth') || 
+      req.nextUrl.pathname.startsWith('/api/webhooks')) {
+    return res;
+  }
+  
   const supabase = createMiddlewareClient({ req, res });
 
   const {
     data: { session },
   } = await supabase.auth.getSession();
 
-  // Public routes
+  // Public routes (páginas)
   const publicRoutes = ['/auth/login', '/auth/register', '/auth/reset-password'];
   const isPublicRoute = publicRoutes.some(route => req.nextUrl.pathname.startsWith(route));
-
-  // API routes that don't require auth (auth endpoints and webhooks)
-  const isPublicApi = req.nextUrl.pathname.startsWith('/api/auth') || 
-                      req.nextUrl.pathname.startsWith('/api/webhooks');
-
-  if (isPublicApi) {
-    return res;
-  }
 
   // Redirect to login if not authenticated
   if (!session && !isPublicRoute) {
@@ -39,6 +38,6 @@ export async function middleware(req: NextRequest) {
 
 export const config = {
   matcher: [
-    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
+    '/((?!_next/static|_next/image|favicon.ico|.*\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
   ],
 };
