@@ -14,8 +14,9 @@ export async function middleware(req: NextRequest) {
   const publicRoutes = ['/auth/login', '/auth/register', '/auth/reset-password'];
   const isPublicRoute = publicRoutes.some(route => req.nextUrl.pathname.startsWith(route));
 
-  // API routes that don't require auth (webhooks)
-  const isPublicApi = req.nextUrl.pathname.startsWith('/api/webhooks');
+  // API routes that don't require auth (auth endpoints and webhooks)
+  const isPublicApi = req.nextUrl.pathname.startsWith('/api/auth') || 
+                      req.nextUrl.pathname.startsWith('/api/webhooks');
 
   if (isPublicApi) {
     return res;
