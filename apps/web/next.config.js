@@ -5,6 +5,8 @@ const nextConfig = {
     serverActions: {
       maxDuration: 30,
     },
+    // Desativar output file tracing para evitar Maximum call stack
+    outputFileTracingRoot: undefined,
   },
   images: {
     domains: ['localhost'],
@@ -15,27 +17,14 @@ const nextConfig = {
       },
     ],
   },
-  // Desativar verificação de tipos no build para economizar memória
   typescript: {
     ignoreBuildErrors: true,
   },
-  // Desativar ESLint no build
   eslint: {
     ignoreDuringBuilds: true,
   },
-  // Reduzir uso de memória
   swcMinify: true,
-  // Otimizar para produção
   productionBrowserSourceMaps: false,
-  // Evitar problema de Maximum call stack
-  webpack: (config, { isServer }) => {
-    config.resolve.fallback = {
-      ...config.resolve.fallback,
-      fs: false,
-      path: false,
-    };
-    return config;
-  },
 }
 
 module.exports = nextConfig
