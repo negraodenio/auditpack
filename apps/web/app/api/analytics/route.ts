@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { supabaseServer } from '@/lib/db/supabase';
 import { requireAuth } from '@/lib/auth/auth';
 
+// Forçar rota dinâmica (usa cookies)
+export const dynamic = 'force-dynamic';
+
 export async function GET(req: NextRequest) {
   try {
     const user = await requireAuth();
