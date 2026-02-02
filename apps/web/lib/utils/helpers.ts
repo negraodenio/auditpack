@@ -17,14 +17,14 @@ export function encrypt(text: string): EncryptedData {
   const iv = CryptoJS.lib.WordArray.random(16);
   const encrypted = CryptoJS.AES.encrypt(text, ENCRYPTION_KEY, {
     iv: iv,
-    mode: CryptoJS.mode.GCM,
+    mode: CryptoJS.mode.CBC,
     padding: CryptoJS.pad.Pkcs7,
   });
   
   return {
     ciphertext: encrypted.ciphertext.toString(CryptoJS.enc.Base64),
     iv: iv.toString(CryptoJS.enc.Base64),
-    authTag: encrypted.toString().split(':')[1] || '',
+    authTag: '', // CBC não usa authTag
   };
 }
 
@@ -33,11 +33,11 @@ export function decrypt(data: EncryptedData): string {
   const ciphertext = CryptoJS.enc.Base64.parse(data.ciphertext);
   
   const decrypted = CryptoJS.AES.decrypt(
-    { ciphertext: ciphertext, salt: '' } as any,
+    ciphertext.toString(),
     ENCRYPTION_KEY,
     {
       iv: iv,
-      mode: CryptoJS.mode.GCM,
+      mode: CryptoJS.mode.CBC,
       padding: CryptoJS.pad.Pkcs7,
     }
   );
