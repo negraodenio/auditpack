@@ -1,0 +1,26 @@
+{
+  "name": "auditpack",
+  "version": "1.0.0",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "build": "turbo run build",
+    "dev": "turbo run dev",
+    "lint": "turbo run lint",
+    "type-check": "turbo run type-check",
+    "clean": "turbo run clean",
+    "db:generate": "supabase gen types typescript --project-id $SUPABASE_PROJECT_ID --schema public > packages/database/src/types.ts",
+    "db:migrate": "supabase db push",
+    "db:seed": "psql $DATABASE_URL -f supabase/seed/seed_data.sql"
+  },
+  "devDependencies": {
+    "turbo": "^1.11.0",
+    "typescript": "^5.3.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
