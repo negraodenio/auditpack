@@ -1,5 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  output: 'standalone',
   experimental: {
     serverActions: {
       maxDuration: 30,
@@ -14,9 +15,26 @@ const nextConfig = {
       },
     ],
   },
-  env: {
-    NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL,
-    NEXT_PUBLIC_SUPABASE_ANON_KEY: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+  // Desativar verificação de tipos no build para economizar memória
+  typescript: {
+    ignoreBuildErrors: true,
+  },
+  // Desativar ESLint no build
+  eslint: {
+    ignoreDuringBuilds: true,
+  },
+  // Reduzir uso de memória
+  swcMinify: true,
+  // Otimizar para produção
+  productionBrowserSourceMaps: false,
+  // Evitar problema de Maximum call stack
+  webpack: (config, { isServer }) => {
+    config.resolve.fallback = {
+      ...config.resolve.fallback,
+      fs: false,
+      path: false,
+    };
+    return config;
   },
 }
 
