@@ -6,7 +6,7 @@ import { supabaseServer } from '@/lib/db/supabase';
 import { cookies } from 'next/headers';
 
 export async function getCurrentUser() {
-  const cookieStore = cookies();
+  const cookieStore = await cookies();
   const token = cookieStore.get('sb-token')?.value;
   
   if (!token) {

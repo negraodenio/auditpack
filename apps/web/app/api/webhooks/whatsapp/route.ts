@@ -7,18 +7,64 @@ import { supabaseServer } from '@/lib/db/supabase';
 import { getLLMProvider } from '@/lib/ai/siliconflow';
 import { hash } from '@/lib/utils/helpers';
 import axios from 'axios';
+import { createHmac, timingSafeEqual } from 'crypto';
 
 const WEBHOOK_SECRET = process.env.WHATSAPP_WEBHOOK_SECRET || '';
 
+/**
+ * Validates webhook signature using HMAC-SHA256
+ * Uses timing-safe comparison to prevent timing attacks
+ */
+function validateWebhookSignature(body: string, signature: string, secret: string): boolean {
+  try {
+    // Evolution API uses HMAC-SHA256 in hex format
+    const hmac = createHmac('sha256', secret);
+    hmac.update(body, 'utf8');
+    const expectedSignature = hmac.digest('hex');
+    
+    // Remove 'sha256=' prefix if present (some webhook providers use this)
+    const actualSignature = signature.startsWith('sha256=') 
+      ? signature.slice(7) 
+      : signature;
+    
+    // Timing-safe comparison to prevent timing attacks
+    const expectedBuf = Buffer.from(expectedSignature, 'hex');
+    const actualBuf = Buffer.from(actualSignature, 'hex');
+    
+    if (expectedBuf.length !== actualBuf.length) {
+      return false;
+    }
+    
+    return timingSafeEqual(expectedBuf, actualBuf);
+  } catch (error) {
+    console.error('Webhook signature validation error:', error);
+    return false;
+  }
+}
+
 export async function POST(req: NextRequest) {
   try {
+    // Get raw body for signature validation
+    const rawBody = await req.text();
+    
     // Validate webhook signature if configured
     const signature = req.headers.get('x-webhook-signature');
     if (WEBHOOK_SECRET && signature) {
-      // TODO: Implement HMAC validation
+      const isValid = validateWebhookSignature(rawBody, signature, WEBHOOK_SECRET);
+      if (!isValid) {
+        console.error('Invalid webhook signature');
+        return NextResponse.json(
+          { received: false, error: 'Invalid signature' },
+          { status: 401 }
+        );
+      }
+    } else if (WEBHOOK_SECRET && !signature) {
+      // Log warning if secret is configured but no signature provided
+      console.warn('Webhook received without signature while WHATSAPP_WEBHOOK_SECRET is set');
     }
-
-    const body = await req.json();
+    
+    // Parse body after signature validation
+    const body = JSON.parse(rawBody);
     const { event, data } = body;
 
     // Only process message events

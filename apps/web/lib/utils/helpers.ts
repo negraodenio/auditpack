@@ -5,7 +5,23 @@
 import CryptoJS from 'crypto-js';
 
 // Encryption helpers
-const ENCRYPTION_KEY = process.env.ENCRYPTION_KEY || 'your-encryption-key-min-32-chars!';
+const ENCRYPTION_KEY = process.env.ENCRYPTION_KEY!;
+
+/**
+ * Validates that the encryption configuration is properly set
+ * Throws an error if ENCRYPTION_KEY is missing or too short
+ */
+export function validateEncryptionConfig(): void {
+  if (!ENCRYPTION_KEY) {
+    throw new Error('SECURITY ERROR: ENCRYPTION_KEY environment variable is not set');
+  }
+  if (ENCRYPTION_KEY.length < 32) {
+    throw new Error(`SECURITY ERROR: ENCRYPTION_KEY must be at least 32 characters (current: ${ENCRYPTION_KEY.length})`);
+  }
+}
+
+// Validate encryption config at module initialization
+validateEncryptionConfig();
 
 export interface EncryptedData {
   ciphertext: string;
